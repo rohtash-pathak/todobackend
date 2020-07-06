@@ -61,7 +61,7 @@ services:
     image: ansible:latest
     container_name: agent
     volumes:
-     - ./ansible/probe.yaml:/ansible/site.yaml
+     - ../ansible/probe.yaml:/ansible/site.yaml
     links:
      - db
     environment:
