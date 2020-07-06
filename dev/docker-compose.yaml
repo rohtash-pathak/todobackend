@@ -1,0 +1,58 @@
+version: "3"
+services:
+  test:
+    build: 
+      context: ../
+      dockerfile: dev/Dockerfile
+    container_name: testing
+    volumes:
+     - cache:/cache
+     - build:/build
+    links: 
+     - db
+    environment:
+      DJANGO_SETTINGS_MODULE: todobackend.settings.test
+      MYSQL_HOST: db
+      MYSQL_USER: root
+      MYSQL_PASSWORD: somewordpress
+      TEST_OUTPUT_DIR: /reports
+
+
+  builder:
+    build: 
+      context: ../
+      dockerfile: dev/Dockerfile
+    volumes:
+      - ../target:/wheelhouse
+      - build:/build      
+    entrypoint: "entrypoint.sh"
+    command: ["pip", "wheel", "--no-index", "-f /build", "."]
+
+  db:
+    image: mysql:5.7
+    container_name: database
+    volumes:
+     - db_data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: somewordpress
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+
+  agent:
+    image: ansible:latest
+    container_name: agent
+    volumes:
+     - ./ansible/probe.yaml:/ansible/site.yaml
+    links:
+     - db
+    environment:
+      PROBE_HOST: "db"
+      PROBE_PORT: "3306"
+
+volumes:
+  cache: {}
+  build: {}
+  db_data: {}
+  
